@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Podešavanje sinhronizacije"
+            android:textAlignment="center"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/textCurrentSync"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:textSize="16sp" />
+
+        <RadioGroup
+            android:id="@+id/radioGroupSync"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp">
+
+            <RadioButton
+                android:id="@+id/radioNever"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nikad" />
+
+            <RadioButton
+                android:id="@+id/radio1Min"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Na svakih 1 minut" />
+
+            <RadioButton
+                android:id="@+id/radio15Min"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Na svakih 15 minuta" />
+
+            <RadioButton
+                android:id="@+id/radio30Min"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Na svakih 30 minuta" />
+        </RadioGroup>
+
+        <Button
+            android:id="@+id/buttonSaveSync"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Sačuvaj i pokreni servis" />
+
+        <Button
+            android:id="@+id/buttonBackSync"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Nazad" />
+    </LinearLayout>
+</ScrollView>
+
