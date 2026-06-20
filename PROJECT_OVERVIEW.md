@@ -39,7 +39,7 @@ Zadatak 3 — Sync prefs + servis:
 - Klase: `SyncPrefs` (čuva `sync_interval`), `SyncSettingsActivity` (UI za izbor intervala), `SyncService` (ili preporučeno: `WorkManager`-based worker)
 
 Zadatak 4 — ContentProvider (kontakti etc.):
-- Klase: `ContactsActivity`, `CalendarActivity`, `SmsActivity`, `PermissionHelper`
+- Klase: `ContactsActivity`, `CalendarActivity`, `SmsActivity`
 - Layouts: `activity_contacts.xml`, `item_contact.xml`, `activity_calendar.xml`, `item_event.xml`, `activity_sms.xml`, `item_sms.xml`
 
 ---
@@ -122,7 +122,6 @@ WorkManager.getInstance(context).enqueueUniquePeriodicWork("sync_work", Existing
 D) CONTENT PROVIDER — Kontakti, Kalendar, SMS
 
 Fajlovi (koje smo dodali u CONTENT_PROVIDER_GUIDE.md / Sema.md):
-- `PermissionHelper.java` — helper za runtime permisije
 - `ContactsActivity.java` + `activity_contacts.xml` + `item_contact.xml`
 - `CalendarActivity.java` + `activity_calendar.xml` + `item_event.xml`
 - `SmsActivity.java` + `activity_sms.xml` + `item_sms.xml`
@@ -130,7 +129,7 @@ Fajlovi (koje smo dodali u CONTENT_PROVIDER_GUIDE.md / Sema.md):
 Ključni delovi koda:
 - `getContentResolver().query(URI, projection, selection, selectionArgs, sortOrder)`
 - `Cursor` handling (null check, moveToFirst, getColumnIndex, read, finally cursor.close())
-- runtime permission flow: check -> request -> onRequestPermissionsResult -> call load method
+- runtime permission flow: direktno u Activity-ju -> check -> request -> onRequestPermissionsResult -> call load method
 
 URI i kolone:
 - Kontakti: ContactsContract.CommonDataKinds.Phone.CONTENT_URI
@@ -222,7 +221,6 @@ Listu fajlova koje smo dodali (ako si potvrdila ubacivanje):
 - `ContactsActivity.java` — Activity za prikaz kontakata
 - `CalendarActivity.java` — Activity za prikaz događaja
 - `SmsActivity.java` — Activity za prikaz SMS-a
-- `PermissionHelper.java` — runtime permisije helper
 - layout fajlovi (`activity_contacts.xml`, itd.)
 
 Pogledaj CONTENT_PROVIDER_GUIDE.md za kompletne kodove.
@@ -243,7 +241,7 @@ Pogledaj CONTENT_PROVIDER_GUIDE.md za kompletne kodove.
 ## 8) Šta dalje (možemo učiniti odmah)
 
 Opcije:
-- `DA — ubaci fajlove` → ubacujem kompletne Java i XML fajlove za Contacts/Calendar/SMS + PermissionHelper + manifest izmene, pa pokrećem proveru grešaka
+- `DA — ubaci fajlove` → ubacujem kompletne Java i XML fajlove za Contacts/Calendar/SMS + manifest izmene, pa pokrećem proveru grešaka
 - `DA — ubaci samo kontakti` → ubacujem samo ContactsActivity i layout-e
 - `Samo README` → želiš dodatne objašnjenja u `README.md` ili kratki cheat u gornjem delu
 

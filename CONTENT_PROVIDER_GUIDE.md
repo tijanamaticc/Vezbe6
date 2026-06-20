@@ -16,7 +16,7 @@ NAPOMENA: Pre nego što kopiraš u projekat, proveri da li već imaš klase sa i
 
 1. Brzi pregled fajlova koje treba da dodaš
 2. Manifest (dozvole)
-3. Pomoćna klasa za runtime permisije
+3. Runtime dozvole direktno u Activity-ju (bez helper klase)
 4. Kontakti — `ContactsActivity.java` + layout
 5. Kalendar — `CalendarActivity.java` + layout
 6. SMS — `SmsActivity.java` + layout
@@ -34,7 +34,6 @@ Predlažem da ubaciš sledeće fajlove u paket `com.example.vezba2klk` (ili tvoj
   - `ContactsActivity.java`
   - `CalendarActivity.java`
   - `SmsActivity.java`
-  - `PermissionHelper.java` (pomoćna klasa za runtime permisije)
 
 - Layouts (res/layout):
   - `activity_contacts.xml` (ListView)
@@ -65,30 +64,40 @@ U `AndroidManifest.xml` dodaj (ako već nije):
 
 ---
 
-## 3) Pomoćna klasa: `PermissionHelper.java`
+## 3) Runtime dozvole direktno u Activity-ju (bez helper klase)
 
-Kopiraj ovu klasu i koristi je u svim Activity-jima da centralizuješ proveru i traženje permisija.
+Ovo je jednostavnija varijanta i sasvim je dovoljna za vežbe. U svakoj Activity klasi direktno napišeš:
+
+- proveru dozvole preko `ContextCompat.checkSelfPermission(...)`
+- traženje dozvole preko `ActivityCompat.requestPermissions(...)`
+- odgovor korisnika u `onRequestPermissionsResult(...)`
+
+To znači da **ne moraš da dodaješ posebnu `PermissionHelper.java` klasu**.
+
+Primer koji možeš koristiti u svakoj Activity klasi:
 
 ```java
-package com.example.vezba2klk;
-
-import android.app.Activity;
-import android.content.pm.PackageManager;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
-public class PermissionHelper {
-    public static boolean hasPermission(Activity activity, String permission) {
-        return ContextCompat.checkSelfPermission(activity, permission) == PackageManager.PERMISSION_GRANTED;
-    }
-
-    public static void requestPermission(Activity activity, String permission, int requestCode) {
-        ActivityCompat.requestPermissions(activity, new String[]{permission}, requestCode);
-    }
+if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)
+        != PackageManager.PERMISSION_GRANTED) {
+    ActivityCompat.requestPermissions(this,
+            new String[]{Manifest.permission.READ_CONTACTS},
+            REQ_READ_CONTACTS);
+} else {
+    loadContacts();
 }
 ```
 
-U Activity-ju obradi `onRequestPermissionsResult` da bi reagovala na odluku korisnika.
+U `onRequestPermissionsResult(...)`:
+
+```java
+if (requestCode == REQ_READ_CONTACTS) {
+    if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        loadContacts();
+    } else {
+        Toast.makeText(this, "Dozvola odbijena", Toast.LENGTH_SHORT).show();
+    }
+}
+```
 
 ---
 
@@ -202,8 +211,11 @@ public class ContactsActivity extends AppCompatActivity {
         };
         listContacts.setAdapter(adapter);
 
-        if (!PermissionHelper.hasPermission(this, Manifest.permission.READ_CONTACTS)) {
-            PermissionHelper.requestPermission(this, Manifest.permission.READ_CONTACTS, REQ_READ_CONTACTS);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_CONTACTS},
+                    REQ_READ_CONTACTS);
         } else {
             loadContacts();
         }
@@ -325,8 +337,11 @@ public class CalendarActivity extends AppCompatActivity {
         };
         listEvents.setAdapter(adapter);
 
-        if (!PermissionHelper.hasPermission(this, Manifest.permission.READ_CALENDAR)) {
-            PermissionHelper.requestPermission(this, Manifest.permission.READ_CALENDAR, REQ_READ_CALENDAR);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALENDAR)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_CALENDAR},
+                    REQ_READ_CALENDAR);
         } else {
             loadEvents();
         }
@@ -447,8 +462,11 @@ public class SmsActivity extends AppCompatActivity {
         };
         listSms.setAdapter(adapter);
 
-        if (!PermissionHelper.hasPermission(this, Manifest.permission.READ_SMS)) {
-            PermissionHelper.requestPermission(this, Manifest.permission.READ_SMS, REQ_READ_SMS);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_SMS},
+                    REQ_READ_SMS);
         } else {
             loadSms();
         }
@@ -544,7 +562,7 @@ adb shell am start -a android.intent.action.INSERT -t vnd.android.cursor.item/co
 - Novi fajl koji sam dodala sada:
   - `CONTENT_PROVIDER_GUIDE.md` (ovaj fajl)
 
-> Napomena: Ako želiš da ja ubacim stvarne Java fajlove (`ContactsActivity.java`, `CalendarActivity.java`, `SmsActivity.java`, `PermissionHelper.java`) u projekt, mogu to da uradim — potvrdi i ja ću kreirati te fajlove direktno u `app/src/main/java/com/example/vezba2klk/` i layout fajlove u `app/src/main/res/layout/`.
+> Napomena: Ako želiš da ja ubacim stvarne Java fajlove (`ContactsActivity.java`, `CalendarActivity.java`, `SmsActivity.java`) u projekt, mogu to da uradim — potvrdi i ja ću kreirati te fajlove direktno u `app/src/main/java/com/example/vezba2klk/` i layout fajlove u `app/src/main/res/layout/`.
 
 ---
 
