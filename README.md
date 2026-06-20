@@ -225,3 +225,438 @@ E) KRATKA CHECKLISTA (pre predaje)
 - Pokreni build: `.\gradlew.bat assembleDebug`
 
 Ako želiš, odmah ću: A) ubaciti ovaj cheat-sheet i u gornji deo README-a kao sažetak (uradiću to sada), i/ili B) dodati WorkManager primer. Reci da li da ubacim u README i potvrdim izmene.
+
+---
+
+## 📘 VEŽBE 6 — DETALJNI PRIRUČNIK ZA SNALAŽENJE (za početnike)
+
+Ovaj deo je pisan baš da možeš da se snađeš kada dobiješ zadatak, a nisi sigurna šta se tačno traži. Ideja je da ne pamtiš sve napamet, nego da znaš:
+
+- **šta je baza**, a šta **SharedPreferences**,
+- kada se koristi **ContentProvider**,
+- šta znači **adapter** u `ListView`-u,
+- i šta tačno treba da kopiraš i promeniš ako dobiješ isti tip zadatka sa drugim podacima.
+
+### Kako da razumeš 4 zadatka iz vežbe
+
+#### 1) SQLite baza + CRUD nad korisnicima
+Ovaj zadatak znači:
+
+- napraviš **lokalnu bazu podataka**,
+- u njoj napraviš tabelu `korisnici`,
+- i onda nad tom tabelom radiš CRUD:
+  - **C**reate → dodaj korisnika,
+  - **R**ead → prikaži korisnike,
+  - **U**pdate → izmeni korisnika,
+  - **D**elete → obriši korisnika.
+
+Ovde **ne treba SharedPreferences** za same korisnike, jer to nije za male vrednosti nego za celu tabelu sa više redova.
+
+U projektu se to radi preko:
+
+- `User` — model jednog korisnika,
+- `UsersDbHelper` — klasa koja pravi tabelu i ima CRUD metode,
+- `UsersActivity` — ekran gde vidiš listu korisnika i radiš dodavanje/izmenu/brisanje.
+
+##### Šta treba da znaš kada kopiraš ovaj deo
+Ako dobiješ drugi entitet, npr. `vozači`, `pevači`, `knjige`:
+
+- promeni naziv modela (`User` → `Driver` ili `Singer`),
+- promeni ime tabele (`korisnici` → `vozaci` ili slično),
+- promeni nazive kolona,
+- promeni tekstove na ekranu,
+- ali logika CRUD ostaje ista.
+
+##### Kako izgleda CRUD logika ukratko
+- **insert** → dodaje novi red u bazu,
+- **query** → vraća redove iz baze,
+- **update** → menja postojeći red,
+- **delete** → briše postojeći red.
+
+---
+
+#### 2) SharedPreferences za ulogovanog korisnika i njegovu ulogu
+Ovo znači da ne čuvaš celu bazu, nego samo male stvari kao:
+
+- ime trenutno prijavljenog korisnika,
+- njegova uloga,
+- da li je prijavljen ili ne.
+
+To se čuva u **SharedPreferences** jer su to male konfiguracione vrednosti, ne tabela.
+
+U projektu se to obično radi preko klase tipa `SessionManager`.
+
+##### Zašto se to koristi
+Zato što aplikacija treba da pamti:
+
+- ko je ulogovan,
+- da li je vozač / putnik / administrator,
+- i koji ekran da prikaže posle prijave.
+
+##### Šta znače uloge
+- **vozač** → može da vidi samo određene ekrane,
+- **putnik** → može da vidi drugačiji skup ekrana,
+- **administrator** → obično ima puni pristup, npr. CRUD korisnika.
+
+##### Šta treba da menjaš kad kopiraš
+- naziv ključa u SharedPreferences,
+- nazive uloga,
+- tekstove na ekranima,
+- uslov u kodu koji proverava ko je prijavljen.
+
+##### Glavna ideja
+SharedPreferences je kao mala memorija aplikacije za:
+
+- prijavu,
+- podešavanja,
+- i stvari koje moraju da ostanu sačuvane i posle gašenja aplikacije.
+
+---
+
+#### 3) SharedPreferences za podešavanje sinhronizacije
+Ovde se ne čuvaju podaci o korisniku, nego **podešavanje koliko često da se sinhronizuje servis**.
+
+Opcije koje obično traže su:
+
+- **nikad**,
+- **na svakih 1 min**,
+- **na svakih 15 min**,
+- **na svakih 30 min**.
+
+##### Šta to praktično znači
+Aplikacija zapamti koji je interval izabran, a onda servis koristi taj interval da zna kada da radi sinhronizaciju.
+
+##### Šta se ovde čuva
+Opet samo mala vrednost, npr. string ili broj:
+
+- `never`
+- `1`
+- `15`
+- `30`
+
+ili vreme u milisekundama.
+
+##### Važno
+SharedPreferences samo **pamti izbor**. Samo čuvanje nije isto što i sinhronizacija.
+
+Da bi sinhronizacija stvarno radila, potreban je:
+
+- servis,
+- `WorkManager`,
+- ili neki drugi mehanizam za pozadinski rad.
+
+##### Kako da razmišljaš kada kopiraš ovaj deo
+Ako zadatak kaže:
+
+- „zapamti interval“ → to je SharedPreferences,
+- „pokreni periodični posao“ → to je servis / work manager / alarm.
+
+---
+
+#### 4) ContentProvider — učitavanje podataka iz druge aplikacije ili sistema
+Ovo je deo koji najviše zbunjuje, pa jednostavno:
+
+**ContentProvider** koristiš kada ne čitaš svoju bazu, nego podatke koje Android sistem ili druga aplikacija već izlaže preko posebnog interfejsa.
+
+Najčešći primer je:
+
+- kontakti iz imenika,
+- kalendar,
+- SMS poruke,
+- mediji,
+- pozivi.
+
+##### Zašto ne čitaš direktno bazu?
+Zato što druge aplikacije ne daju direktan pristup svojoj internoj bazi. Umesto toga, one nude podatke preko ContentProvider-a.
+
+To znači:
+
+- ne znaš i ne treba da znaš kako je njihova interna baza napravljena,
+- već koristiš standardni Android način da dođeš do tih podataka.
+
+##### Zašto je to korisno
+- standardizovan pristup,
+- sigurniji pristup,
+- nema potrebe da znaš unutrašnju strukturu tuđe baze,
+- možeš da čitaš sistemske podatke kroz isti princip.
+
+##### Primer iz vežbi
+Kad učitavaš kontakte, koristiš:
+
+- `ContactsContract`,
+- `getContentResolver().query(...)`,
+- runtime dozvolu `READ_CONTACTS`.
+
+##### Šta treba da uradiš u kodu
+1. proveriš dozvolu,
+2. napraviš `query` na odgovarajući `URI`,
+3. pročitaš rezultate preko `Cursor`-a,
+4. prikažeš ih u listi.
+
+---
+
+### Objašnjenje najzbunjujućih delova iz koda
+
+#### Šta je `Adapter`
+Adapter je veza između:
+
+- tvoje liste podataka,
+- i ekrana gde ih prikazuješ.
+
+Znači, ako imaš listu korisnika u memoriji, adapter kaže:
+
+> „Za svaki korisnik napravi jedan red na ekranu i popuni ga podacima.”
+
+Bez adaptera, `ListView` ne bi znao kako da prikaže tvoje objekte.
+
+##### U `UsersActivity` je to obično:
+```java
+ArrayAdapter<User> adapter = ...
+```
+
+To znači:
+
+- koristi se `ArrayAdapter`,
+- tip podataka je `User`,
+- i svaki korisnik se pretvara u jedan red na listi.
+
+---
+
+#### Šta je `ArrayAdapter`
+`ArrayAdapter` je gotov Android adapter koji se koristi kada imaš listu običnih objekata ili stringova.
+
+On prima:
+
+- kontekst (`this`),
+- layout za jedan red,
+- i listu podataka.
+
+Primer:
+```java
+ArrayAdapter<User> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_2, users) {
+    ...
+};
+```
+
+To znači:
+
+- uzmi listu `users`,
+- za svaki element napravi jedan prikaz,
+- i stavi ga u `ListView`.
+
+---
+
+#### Šta je `android.R.layout.simple_list_item_2`
+To je **ugrađeni Android layout** koji već ima **dva tekstualna reda**.
+
+Koristi se kada želiš da jedna stavka na listi prikazuje dve informacije, npr.:
+
+- prvi red: ime i uloga,
+- drugi red: email.
+
+Dakle, to nije tvoj fajl nego **gotov layout iz Android sistema**.
+
+##### Zašto je koristan
+Zato što ne moraš sam da praviš XML za dva reda ako ti to već odgovara.
+
+---
+
+#### Šta su `android.R.id.text1` i `android.R.id.text2`
+U `simple_list_item_2` Android je već napravio dva `TextView`-a:
+
+- `text1` → prvi red,
+- `text2` → drugi red.
+
+Kada pišeš adapter, kažeš:
+
+- u `text1` stavi ime,
+- u `text2` stavi email ili ulogu.
+
+To izgleda ovako:
+```java
+TextView text1 = view.findViewById(android.R.id.text1);
+TextView text2 = view.findViewById(android.R.id.text2);
+```
+
+---
+
+#### Zašto se koristi `notifyDataSetChanged()`
+Kada promeniš listu podataka u kodu, ekran to ne zna sam od sebe.
+
+Zato pozivaš:
+
+```java
+adapter.notifyDataSetChanged();
+```
+
+To govori:
+
+> „E, lista se promenila — osveži prikaz.”
+
+Bez toga, može se desiti da u bazi ima novi podatak, ali da ga na ekranu još ne vidiš.
+
+---
+
+### Kako da čitaš `UsersActivity` ako ti je zbunjujuća
+
+U toj aktivnosti obično imaš ove korake:
+
+1. učitaš listu korisnika iz baze,
+2. napraviš adapter,
+3. povežeš adapter sa `ListView`-om,
+4. kada korisnik klikne dugme, dodaš / izmeniš / obrišeš korisnika,
+5. onda ponovo osvežiš listu.
+
+##### Jednostavno rečeno
+`UsersActivity` je ekran, `UsersDbHelper` je baza, a adapter je „prevodilac” između baze i ekrana.
+
+---
+
+### Šta tačno radi ContentProvider i zašto se koristi
+ContentProvider se koristi zato što Android ima mnogo sistemskih podataka koji nisu tvoji, ali ih možeš čitati ako imaš dozvolu.
+
+Na primer:
+
+- kontakti,
+- kalendar,
+- SMS.
+
+##### Zašto je taj način bolji
+Zato što:
+
+- ne zavisiš od unutrašnje baze druge aplikacije,
+- dobijaš standardni pristup kroz Android API,
+- sigurnije je i urednije,
+- radi isto za različite izvore podataka.
+
+##### Kako to zamišljati
+Ne ulaziš direktno u tuđu sobu i pretražuješ fioke.
+Umesto toga, koristiš „zvono na vratima” koje vlasnik aplikacije daje kroz ContentProvider.
+
+---
+
+### Kako da znaš šta da kopiraš ako dobiješ novi zadatak
+
+Ako zadatak kaže **lokalna baza + CRUD**:
+
+- kopiraš model,
+- kopiraš `SQLiteOpenHelper`,
+- kopiraš activity za prikaz,
+- promeniš naziv tabele, kolona i stringove.
+
+Ako zadatak kaže **sačuvaj prijavu / ulogu / settings**:
+
+- kopiraš `SharedPreferences` logiku,
+- promeniš ključeve,
+- promeniš vrednosti koje čuvaš.
+
+Ako zadatak kaže **uzmi kontakte ili podatke iz druge aplikacije**:
+
+- koristiš ContentProvider,
+- dodaš permission,
+- proveriš `Cursor`,
+- prikažeš rezultate.
+
+---
+
+### Mini-podsetnik: šta je gde
+
+- **SQLite** → za tvoje podatke u tabeli
+- **SharedPreferences** → za male sačuvane vrednosti
+- **ContentProvider** → za podatke iz sistema ili druge aplikacije
+- **Adapter** → da prikaže listu na ekranu
+
+---
+
+### Šta da gledaš u kodu kad nisi sigurna
+
+Kad vidiš:
+
+- `insert`, `update`, `delete`, `query` → to je baza
+- `SharedPreferences` → to je pamćenje podešavanja
+- `getContentResolver().query(...)` → to je ContentProvider
+- `ArrayAdapter` → to je prikaz liste
+- `android.R.layout.simple_list_item_2` → gotov layout sa dva reda
+
+---
+
+### Kratak primer kako da razmišljaš tokom kolokvijuma
+
+Ako piše:
+
+> „Sačuvati korisnike i omogućiti CRUD”
+
+ti odmah znaš:
+
+- SQLite baza,
+- jedna tabela,
+- model klase,
+- `SQLiteOpenHelper`,
+- activity za listu i dijalog za unos.
+
+Ako piše:
+
+> „Sačuvati ulogovanog korisnika i ulogu”
+
+ti odmah znaš:
+
+- SharedPreferences,
+- ključ za ime,
+- ključ za ulogu,
+- čitanje posle pokretanja aplikacije.
+
+Ako piše:
+
+> „Učitati kontakte iz imenika”
+
+ti odmah znaš:
+
+- ContentProvider,
+- `READ_CONTACTS`,
+- `Cursor`,
+- `ContactsContract`.
+
+---
+
+### Najkraće moguće objašnjenje za usmeno
+
+Ako te profesor pita „šta je ovo?” možeš da kažeš:
+
+- **SQLite** je lokalna baza za trajno čuvanje podataka u aplikaciji.
+- **SharedPreferences** služi za male sačuvane vrednosti kao što su login i settings.
+- **ContentProvider** služi da aplikacija čita podatke koje izlaže sistem ili druga aplikacija, npr. kontakte.
+- **Adapter** povezuje listu podataka sa prikazom na ekranu.
+
+---
+
+### Ako želiš da kopiraš i menjaš kod
+
+Najlakši redosled je:
+
+1. kopiraj model,
+2. kopiraj bazu / preferences / provider logiku,
+3. promeni imena klasa,
+4. promeni nazive tabela i kolona,
+5. promeni tekstove na ekranu,
+6. proveri dozvole,
+7. testiraj da li lista radi i da li se podaci osvežavaju.
+
+---
+
+### Zaključak
+
+Ovaj projekat ti je podeljen na 4 logička dela:
+
+1. **SQLite** → korisnici i CRUD,
+2. **SharedPreferences** → prijava i uloga,
+3. **SharedPreferences + servis** → interval sinhronizacije,
+4. **ContentProvider** → učitavanje kontakata ili drugih sistemskih podataka.
+
+Ako razumeš ovu podelu, mnogo lakše ćeš se snaći i kada dobiješ novi zadatak samo ćeš menjati:
+
+- naziv entiteta,
+- naziv tabele,
+- naziv kolona,
+- URL / URI,
+- i tekstove u UI-u.
+
